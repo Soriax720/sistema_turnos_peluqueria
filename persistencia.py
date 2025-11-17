@@ -1,0 +1,35 @@
+from abc import ABC, abstractmethod 
+
+class IPersistence(ABC):
+    @abstractmethod
+    def save(self,data: dict):
+        pass
+    @abstractmethod
+    def load(self):
+        pass
+
+class PersistenceCsv(IPersistence):
+    def __init__(self, file_name):
+        self.file_name = file_name
+
+    def save(self, data):
+        key = data[0].keys()
+        csv_content = ",".join(key) + "\n"
+        for d in data:
+            values_as_string = []
+            for value in d.values():
+                values_as_string.append(str(value))
+            file_csv = ",".join(values_as_string) + "\n"
+            csv_content = csv_content + file_csv
+        
+        f = None
+        try:
+            f = open(self.file_name, "w")
+            f.write(csv_content)
+        except Exception as e:
+            print(f"Error al guardar en: {self.file_name}: {e}")
+        
+        finally:
+            if f:
+                f.close()
+              
