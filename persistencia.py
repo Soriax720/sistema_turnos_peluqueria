@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod 
 
+#interfaz
 class IPersistence(ABC):
     @abstractmethod
     def save(self,data: dict):
@@ -32,4 +33,35 @@ class PersistenceCsv(IPersistence):
         finally:
             if f:
                 f.close()
-              
+
+    def load(self):
+        f = None
+        try:
+            f = open(self.file_name, 'r')
+            content = f.read()
+        except FileNotFoundError:
+            return []
+        finally:
+            if f:
+                f.close()
+
+        if content == "":
+            return []
+        
+        rows = content.split("\n")
+
+        if rows[-1] == "":
+            rows.pop()
+
+        first_row = rows[0]
+        headers = first_row.split(",")
+        data_raws_strings = rows[1:]
+
+        loaded_data = []
+        for row_string in data_raws_strings:
+            values_list = row_string.split(",")
+            appointment_dict = dict(zip(headers,values_list))
+            
+            loaded_data.append(appointment_dict)
+        
+        return loaded_data
