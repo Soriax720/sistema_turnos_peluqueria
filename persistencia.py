@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 #interfaz
 class IPersistence(ABC):
     @abstractmethod
-    def save(self,data: dict):
+    def save(self,data: list[dict]):
         pass
     @abstractmethod
     def load(self):
@@ -14,6 +14,12 @@ class PersistenceCsv(IPersistence):
         self.file_name = file_name
 
     def save(self, data):
+        if not data:
+            f = open(self.file_name, "w")
+            f.close()
+            return
+        
+        
         key = data[0].keys()
         csv_content = ",".join(key) + "\n"
         for d in data:
