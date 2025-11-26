@@ -103,3 +103,46 @@ class GestorTurnos:
         except Exception as e:
             print(f"El sistema no pudo guardar los cambios en el archivo CSV.")
             print(f"Razon: {e}")
+
+    def solicitar_turno(self, id_cliente, id_peluquero, servicio, fecha_hora):
+        client_found = None
+        for c in self.clientes:
+            if c.id_cliente == id_cliente:
+                client_found = c
+                break
+        
+        hairdresser_found = None
+        for h in self.peluqueros:
+            if h.id_peluquero == id_peluquero:
+                hairdresser_found = h
+                break
+
+        if not client_found or not hairdresser_found:
+            raise ValueError("El cliente o peluquero no fue encontrado")
+        
+        for turn_existent in self.turnos:
+            if turn_existent.peluquero.id_peluquero == hairdresser_found.id_peluquero and turn_existent.fecha_hora == fecha_hora:
+                raise ValueError("El peluquero ya tiene un turno asignado en esa fecha y hora")
+        
+        if not self.turnos:
+            new_id = 1
+        else:
+            max_id = 0
+            for n in self.turnos:
+                if n.id_turno > max_id:
+                    max_id = n.id_turno
+            
+            new_id = max_id + 1
+
+        new_turn = Turno(
+            cliente = client_found,
+            peluquero= hairdresser_found,
+            id_turno= new_id,
+            servicio= servicio,
+            fecha_hora= fecha_hora
+        )
+
+        self.turnos.append(new_turn)
+        self.guardar_datos()
+
+        return new_turn.mostrar_turno()
