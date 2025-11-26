@@ -67,3 +67,39 @@ class GestorTurnos:
             except Exception as e:
                 print(f"Error al cargar turno del archivo: {e}")
                 continue
+    
+    def registrar_cliente(self, nombre, apellido, telefono):
+        if not self.clientes:
+            new_id = 1
+        else:
+            max_id = 0
+            for n in self.clientes:
+                if n.id_cliente > max_id:
+                    max_id = n.id_cliente
+            
+            new_id = max_id + 1
+
+        new_client = Cliente(
+            nombre = nombre,
+            apellido= apellido,
+            telefono= telefono,
+            id_cliente= new_id
+        )
+
+        self.clientes.append(new_client)
+
+        self.guadar_datos()
+        return new_client.id_cliente
+    
+    def guardar_datos(self):
+        data_to_save = []
+        for appo_obj in self.turnos:
+            appoint_dict = appo_obj.get_datos()
+            data_to_save.append(appoint_dict)
+        self.persistence.save(data_to_save)
+        try:
+            self.persistencia.save(data_to_save)
+            print("Datos guardados con éxito.")
+        except Exception as e:
+            print(f"El sistema no pudo guardar los cambios en el archivo CSV.")
+            print(f"Razon: {e}")
