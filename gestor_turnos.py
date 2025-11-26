@@ -146,3 +146,30 @@ class GestorTurnos:
         self.guardar_datos()
 
         return new_turn.mostrar_turno()
+    
+    def listar_turnos(self):
+        if not self.turnos:
+            return "No hay turnos registrados en el sistema"
+        
+        final_report = "\n--- LISTADO DE TURNOS ---\n"
+
+        for t in self.turnos:
+            final_report = final_report + t.mostrar_turno() + "\n"
+        
+        return final_report
+    
+    def cancelar_turno(self, appointment_id):
+
+        appointment_to_remove = None
+
+        for appointment in self.turnos:
+            if appointment.id_turno == appointment_id:
+                appointment_to_remove = appointment
+                break
+        if appointment_to_remove:
+            self.turnos.remove(appointment_to_remove)
+            self.guardar_datos()
+
+            return f"El tuno {appointment_id} fue elimnado correctamente"
+        else:
+            return f"Error: No se encontro ningun turno con el id {appointment_id}"
