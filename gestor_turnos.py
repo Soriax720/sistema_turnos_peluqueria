@@ -5,7 +5,7 @@ from persistencia import PersistenceCsv
 
 class GestorTurnos:
     _instance = None
-
+    #Singleton: Garantiza la existencia de una única instancia del Gestor en todo el sistema.
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super(GestorTurnos, cls).__new__(cls)
@@ -13,7 +13,8 @@ class GestorTurnos:
         return cls._instance
     
     def __init__(self):
-        try:
+         
+        try: #Evita que se borren las listas si se llama a GestorTurnos() de nuevo.
             _ = self._initialized
         except AttributeError:
             self._initialized = True
@@ -25,18 +26,32 @@ class GestorTurnos:
             self.persistence = PersistenceCsv("turno.csv")
             
             self.cargar_datos()
+            
+            # Arreglo: Si el sistema arranca vacío, creamos peluqueros por defecto para poder probar
+            if not self.peluqueros:
+                p1 = Peluquero("Jorge", "Muñoz", "111-222", 101, "Corte")
+                p2 = Peluquero("Maria", "Gomez", "333-444", 102, "Color")
+                p3 = Peluquero("Luis", "Vera", "555-666", 103, "Barba")
+                
+                self.peluqueros.append(p1)
+                self.peluqueros.append(p2)
+                self.peluqueros.append(p3)
     
     def cargar_datos(self):
         raw_data = self.persistence.load()
 
         for d in raw_data:
             try:
+                #conversion a int y datetime
                 turno_id = int(d['id_turno'])
                 cliente_id = int(d['cliente_id'])
                 peluquero_id = int(d['peluquero_id'])
 
                 date_object = datetime.strptime(d['fecha_hora'],"%Y-%m-%d %H:%M")
+                
 
+                # Reconstrucción con Placeholders:
+                # Creacion de objetos temporales solo con el ID correcto para satisfacer al constructor de Turno
                 client_placeholder = Cliente(
                     nombre="Cliente",
                     apellido="Recuperado",
@@ -69,6 +84,7 @@ class GestorTurnos:
                 continue
     
     def registrar_cliente(self, nombre, apellido, telefono):
+        #generacion de id de autoincremento
         if not self.clientes:
             new_id = 1
         else:
@@ -88,23 +104,25 @@ class GestorTurnos:
 
         self.clientes.append(new_client)
 
-        self.guadar_datos()
+        self.guardar_datos()
         return new_client.id_cliente
     
     def guardar_datos(self):
         data_to_save = []
+        #convertir los objetos Turno a dict antes de guardar
         for appo_obj in self.turnos:
             appoint_dict = appo_obj.get_datos()
             data_to_save.append(appoint_dict)
         self.persistence.save(data_to_save)
         try:
-            self.persistencia.save(data_to_save)
+            self.persistence.save(data_to_save)
             print("Datos guardados con éxito.")
         except Exception as e:
             print(f"El sistema no pudo guardar los cambios en el archivo CSV.")
             print(f"Razon: {e}")
 
     def solicitar_turno(self, id_cliente, id_peluquero, servicio, fecha_hora):
+        #Búsqueda de Instancias Reales
         client_found = None
         for c in self.clientes:
             if c.id_cliente == id_cliente:
@@ -120,10 +138,15 @@ class GestorTurnos:
         if not client_found or not hairdresser_found:
             raise ValueError("El cliente o peluquero no fue encontrado")
         
+        if hairdresser_found.especialidad != servicio:
+             raise ValueError(f"El peluquero {hairdresser_found.nombre} (ID {id_peluquero}) no realiza '{servicio}'. Su especialidad es: {hairdresser_found.especialidad}")
+        
+        #Evitar turnos duplicados
         for turn_existent in self.turnos:
             if turn_existent.peluquero.id_peluquero == hairdresser_found.id_peluquero and turn_existent.fecha_hora == fecha_hora:
                 raise ValueError("El peluquero ya tiene un turno asignado en esa fecha y hora")
         
+        #Generación de ID y Creación
         if not self.turnos:
             new_id = 1
         else:

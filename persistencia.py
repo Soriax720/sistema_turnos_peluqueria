@@ -19,16 +19,22 @@ class PersistenceCsv(IPersistence):
             f.close()
             return
         
-        
+
         key = data[0].keys()
         csv_content = ",".join(key) + "\n"
+
+        #recorrer el dict para convertir los valores a textos
         for d in data:
             values_as_string = []
             for value in d.values():
                 values_as_string.append(str(value))
+
+
             file_csv = ",".join(values_as_string) + "\n"
             csv_content = csv_content + file_csv
         
+
+        #el try-finally garantiza que el archivo se cierre incluso si hay error al escribir.
         f = None
         try:
             f = open(self.file_name, "w")
@@ -55,7 +61,7 @@ class PersistenceCsv(IPersistence):
             return []
         
         rows = content.split("\n")
-
+        #elimina la ultima linea si quedo vacia por salto de linea
         if rows[-1] == "":
             rows.pop()
 
@@ -66,6 +72,7 @@ class PersistenceCsv(IPersistence):
         loaded_data = []
         for row_string in data_raws_strings:
             values_list = row_string.split(",")
+            # 'zip' empareja cada encabezado con su valor correspondiente.
             appointment_dict = dict(zip(headers,values_list))
             
             loaded_data.append(appointment_dict)
