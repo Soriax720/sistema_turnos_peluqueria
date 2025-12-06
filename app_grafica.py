@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox # ventanas emergentes de alerta
 from gestor_turnos import GestorTurnos
 
@@ -18,6 +19,9 @@ class SalonApp:
 
         self.btn_registro = tk.Button(self.master, text="1. Registrar Cliente", command= self.open_registro_cliente)
         self.btn_registro.pack(pady=5)
+
+        self.btn_listar = tk.Button(self.master , text="3. Listar turnos", command= self.open_listar_turnos)
+        self.btn_listar.pack(pady=5)
     
     def open_registro_cliente(self):
         self.ventana_registro = tk.Toplevel(self.master)
@@ -59,7 +63,44 @@ class SalonApp:
             messagebox.showerror("Error", f"No se pudo registrar el cliente.\nDetalle: {e}")
 
 
+    def open_listar_turnos(self):
+        self.ventana_lista = tk.Toplevel(self.master)
+        self.ventana_lista.title("Listado de Turnos")
+        self.ventana_lista.geometry("800x400")
 
+        columns = ("id", "fecha", "servicio", "cliente", "peluquero")
+
+        #widget treeview
+        tree = ttk.Treeview(self.ventana_lista, columns=columns, show="headings")
+
+        tree.heading("id", text="ID Turno")
+        tree.heading("fecha", text="Fecha y Hora")
+        tree.heading("servicio", text="Servicio")
+        tree.heading("cliente", text="Cliente (ID)")
+        tree.heading("peluquero", text="Peluquero (ID)")
+
+        tree.column("id", width=50, anchor="center")
+        tree.column("fecha", width=150, anchor="center")
+        tree.column("servicio", width=100)
+        tree.column("cliente", width=100)
+        tree.column("peluquero", width=100)
+
+        for turno in self.gestor.turnos:
+            fecha_str = turno.fecha_hora.strftime("%d/%m/%Y %H:%M")
+            #insertar fila en tabla
+            tree.insert("", tk.END, values=(
+                turno.id_turno,
+                fecha_str,
+                turno.servicio,
+                f"ID: {turno.cliente.id_cliente}",
+                f"ID: {turno.peluquero.id_peluquero}"
+            ))
+            #empaquetar tabla
+            scrollbar = ttk.Scrollbar(self.ventana_lista, orient=tk.VERTICAL, command=tree.yview)
+            tree.configure(yscroll=scrollbar.set)
+
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            tree.pack(fill=tk.BOTH, expand=True)
 
 if __name__ == "__main__":
     root = tk.Tk()       # Crea la ventana base
